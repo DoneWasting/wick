@@ -92,6 +92,15 @@ export function PencilIcon({ size = 22, color = "#e6e8eb" }: IconProps) {
   );
 }
 
+export function PlusIcon({ size = 22, color = "#e6e8eb" }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Line x1="12" y1="5" x2="12" y2="19" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <Line x1="5" y1="12" x2="19" y2="12" stroke={color} strokeWidth="2" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 export function ChevronRightIcon({ size = 20, color = "#8a929c" }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">

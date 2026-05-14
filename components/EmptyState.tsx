@@ -26,7 +26,7 @@ export function EmptyState() {
           lineHeight: 24,
         }}
       >
-        No alerts yet.{"\n"}Tap the pencil to create one.
+        No alerts yet.{"\n"}Tap the + to create one.
       </Text>
     </View>
   );

@@ -9,7 +9,7 @@ import {
 import { BellIcon, CandlestickIcon } from "./Icons";
 import { colors } from "../lib/theme";
 import { useNow } from "../hooks/useNow";
-import { formatCountdown, getNextFire } from "../lib/countdown";
+import { formatClock, formatCountdown, getNextFire } from "../lib/countdown";
 
 interface Props {
   alert: Alert;
@@ -88,11 +88,10 @@ function CountdownLine({ alert }: { alert: Alert }) {
   const now = useNow(1000);
   const next = getNextFire(alert, now);
   const remaining = next.fireAt - now;
-  const label = NOTIFY_BEFORE_LABELS[next.notifyBefore];
   return (
     <View style={{ marginTop: 4 }}>
       <Text style={{ color: colors.accentBlueSoft, fontSize: 13 }}>
-        Next: {formatCountdown(remaining)} · {label}
+        Next: {formatCountdown(remaining)} · {formatClock(new Date(next.fireAt))}
       </Text>
     </View>
   );

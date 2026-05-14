@@ -1,4 +1,4 @@
-// Candle Alerts — Service Worker
+// Wick — Service Worker
 //
 // Goal: deliver scheduled notifications even when the tab is closed.
 //

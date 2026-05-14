@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import {
   Alert as RNAlert,
+  Image,
   Platform,
   Pressable,
   ScrollView,
@@ -12,7 +13,7 @@ import { useRouter } from "expo-router";
 import { useAlerts } from "../hooks/useAlerts";
 import { AlertCard } from "../components/AlertCard";
 import { EmptyState } from "../components/EmptyState";
-import { MenuIcon, PencilIcon, TrashIcon } from "../components/Icons";
+import { MenuIcon, PlusIcon, TrashIcon } from "../components/Icons";
 import { colors } from "../lib/theme";
 import { useNow } from "../hooks/useNow";
 import { formatClock, formatUtcClock } from "../lib/countdown";
@@ -63,17 +64,17 @@ export default function Home() {
         </Pressable>
       </View>
 
-      <Text
+      <Image
+        source={require("../assets/wick-logo.png")}
+        resizeMode="contain"
+        accessibilityLabel="Wick"
         style={{
-          color: colors.textPrimary,
-          paddingHorizontal: 20,
-          paddingTop: 8,
-          fontSize: 28,
-          fontWeight: "700",
+          marginHorizontal: 20,
+          marginTop: 8,
+          width: 130,
+          height: 36,
         }}
-      >
-        Candle alerts
-      </Text>
+      />
       <Text
         style={{
           color: colors.textSecondary,
@@ -83,8 +84,9 @@ export default function Home() {
           fontSize: 13,
         }}
       >
-        Now {formatClock(nowDate)} local · {formatUtcClock(nowDate)} UTC
+        Now {formatClock(nowDate)} Local · {formatUtcClock(nowDate)} UTC
       </Text>
+      
 
       {!hydrated ? null : alerts.length === 0 ? (
         <EmptyState />
@@ -115,7 +117,7 @@ export default function Home() {
           elevation: 6,
         }}
       >
-        <PencilIcon size={26} color={colors.textPrimary} />
+        <PlusIcon size={28} color={colors.textPrimary} />
       </Pressable>
 
       <Sidebar

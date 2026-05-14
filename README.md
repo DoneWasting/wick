@@ -1,4 +1,4 @@
-# Candle Alerts
+# Wick
 
 A cross-platform (web + iOS + Android) app for setting local notifications on Forex and Crypto candlestick closes. Built with Expo + expo-router + NativeWind v4.
 
@@ -70,7 +70,7 @@ To prove it's UTC-aligned: open the app at `12:34:30` UTC. The 1-minute alert wi
 ```
 app/
   _layout.tsx              Root: notification handler, permission request, hydration
-  index.tsx                "Candle alerts" home with FAB
+  index.tsx                "Wick" home with FAB
   create.tsx               3-step modal wizard
 components/
   AlertCard.tsx            Row with toggle, bell rows, expandable price

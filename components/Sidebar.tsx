@@ -103,7 +103,7 @@ export function Sidebar({ open, onClose, onConfirmClearAll }: Props) {
       >
         <View style={{ paddingHorizontal: 16, paddingBottom: 24 }}>
           <Text style={{ color: colors.textPrimary, fontSize: 22, fontWeight: "700" }}>
-            Candle alerts
+            Wick
           </Text>
           <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 4 }}>
             v{version} · {alertCount} alert{alertCount === 1 ? "" : "s"}

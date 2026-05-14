@@ -1,25 +1,32 @@
 {
   "expo": {
-    "name": "Candle Alerts",
+    "name": "Wick",
     "slug": "candle-alerts",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "candlealerts",
+    "scheme": "wick",
     "userInterfaceStyle": "dark",
     "newArchEnabled": false,
+    "icon": "./assets/icon.png",
     "splash": {
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0a0e14"
+      "backgroundColor": "#0E0E0E"
+    },
+    "notification": {
+      "icon": "./assets/notification-icon.png",
+      "color": "#1FBF7A"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.candlealerts.app"
+      "bundleIdentifier": "com.wick.app"
     },
     "android": {
-      "package": "com.candlealerts.app",
+      "package": "com.wick.app",
       "versionCode": 1,
       "adaptiveIcon": {
-        "backgroundColor": "#0a0e14"
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0E0E0E"
       },
       "permissions": [
         "NOTIFICATIONS",
@@ -38,7 +45,7 @@
       [
         "expo-notifications",
         {
-          "color": "#4a90e2",
+          "color": "#1FBF7A",
           "sounds": ["./assets/sounds/alert.mp3"]
         }
       ]
