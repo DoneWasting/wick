@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-NetTCPConnection -LocalPort 8081 -State Listen -ErrorAction SilentlyContinue)",
+      "Bash(npm install *)",
+      "Bash(npx tsc *)",
+      "PowerShell(Remove-Item -Recurse -Force \"$env:LOCALAPPDATA\\\\Temp\\\\metro-cache\" -ErrorAction SilentlyContinue; if \\(Test-Path \"$env:LOCALAPPDATA\\\\Temp\\\\metro-cache\"\\) { \"cache still present\" } else { \"cache cleared\" })",
+      "Bash(BROWSER=none npx expo start --web --port 8081)",
+      "Bash(curl -s -o \"c:/Users/david/Desktop/candle-timer/.bundle-check.js\" -w \"HTTP %{http_code}  bytes %{size_download}  time %{time_total}s\\\\n\" \"http://localhost:8081/node_modules%5Cexpo-router%5Centry.bundle?platform=web&dev=true&hot=false&lazy=true&transform.engine=hermes&transform.routerRoot=app\" --max-time 240)"
+    ]
+  }
+}
