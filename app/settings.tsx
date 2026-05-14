@@ -19,7 +19,12 @@ import {
   sendTestNotification,
   PermissionState,
 } from "../lib/notifications";
-import { getSoundEnabled, setSoundEnabled } from "../lib/settings";
+import {
+  getSoundEnabled,
+  setSoundEnabled,
+  getVibrationEnabled,
+  setVibrationEnabled,
+} from "../lib/settings";
 import { useAlertsStore } from "../store/alertsStore";
 
 export default function Settings() {
@@ -28,13 +33,15 @@ export default function Settings() {
   const alertCount = useAlertsStore((s) => s.alerts.length);
 
   const [soundOn, setSoundOn] = useState(true);
+  const [vibrationOn, setVibrationOn] = useState(true);
   const [permission, setPermission] = useState<PermissionState>("default");
   const [testMsg, setTestMsg] = useState<string | null>(null);
 
-  // Hydrate the sound preference once on mount.
+  // Hydrate the sound + vibration preferences once on mount.
   useEffect(() => {
     void (async () => {
       setSoundOn(await getSoundEnabled());
+      setVibrationOn(await getVibrationEnabled());
     })();
   }, []);
 
@@ -49,6 +56,11 @@ export default function Settings() {
   const setSound = async (v: boolean) => {
     setSoundOn(v);
     await setSoundEnabled(v);
+  };
+
+  const setVibration = async (v: boolean) => {
+    setVibrationOn(v);
+    await setVibrationEnabled(v);
   };
 
   const key = process.env.EXPO_PUBLIC_TWELVEDATA_KEY;
@@ -99,6 +111,22 @@ export default function Settings() {
             onValueChange={(v) => void setSound(v)}
             trackColor={{ false: colors.switchTrackOff, true: colors.switchTrackOn }}
             thumbColor={soundOn ? colors.switchThumbOn : colors.switchThumbOff}
+            ios_backgroundColor={colors.switchTrackOff}
+          />
+        </Row>
+
+        <Row>
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: colors.textPrimary, fontSize: 16 }}>Vibration</Text>
+            <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 2 }}>
+              Vibrate the device when an alert fires.
+            </Text>
+          </View>
+          <Switch
+            value={vibrationOn}
+            onValueChange={(v) => void setVibration(v)}
+            trackColor={{ false: colors.switchTrackOff, true: colors.switchTrackOn }}
+            thumbColor={vibrationOn ? colors.switchThumbOn : colors.switchThumbOff}
             ios_backgroundColor={colors.switchTrackOff}
           />
         </Row>

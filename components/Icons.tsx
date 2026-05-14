@@ -6,7 +6,7 @@ interface IconProps {
   color?: string;
 }
 
-export function CandlestickIcon({ size = 22, color = "#8a929c" }: IconProps) {
+export function CandlestickIcon({ size = 22, color = "#9A9A9A" }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Line x1="8" y1="3" x2="8" y2="6" stroke={color} strokeWidth="1.6" strokeLinecap="round" />
@@ -19,7 +19,7 @@ export function CandlestickIcon({ size = 22, color = "#8a929c" }: IconProps) {
   );
 }
 
-export function BellIcon({ size = 18, color = "#8a929c" }: IconProps) {
+export function BellIcon({ size = 18, color = "#9A9A9A" }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -40,7 +40,7 @@ export function BellIcon({ size = 18, color = "#8a929c" }: IconProps) {
   );
 }
 
-export function MenuIcon({ size = 24, color = "#e6e8eb" }: IconProps) {
+export function MenuIcon({ size = 24, color = "#FFFFFF" }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Line x1="3" y1="6" x2="21" y2="6" stroke={color} strokeWidth="2" strokeLinecap="round" />
@@ -50,7 +50,7 @@ export function MenuIcon({ size = 24, color = "#e6e8eb" }: IconProps) {
   );
 }
 
-export function TrashIcon({ size = 22, color = "#e6e8eb" }: IconProps) {
+export function TrashIcon({ size = 22, color = "#FFFFFF" }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -78,7 +78,7 @@ export function TrashIcon({ size = 22, color = "#e6e8eb" }: IconProps) {
   );
 }
 
-export function PencilIcon({ size = 22, color = "#e6e8eb" }: IconProps) {
+export function PencilIcon({ size = 22, color = "#FFFFFF" }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -92,7 +92,7 @@ export function PencilIcon({ size = 22, color = "#e6e8eb" }: IconProps) {
   );
 }
 
-export function PlusIcon({ size = 22, color = "#e6e8eb" }: IconProps) {
+export function PlusIcon({ size = 22, color = "#FFFFFF" }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Line x1="12" y1="5" x2="12" y2="19" stroke={color} strokeWidth="2" strokeLinecap="round" />
@@ -101,7 +101,7 @@ export function PlusIcon({ size = 22, color = "#e6e8eb" }: IconProps) {
   );
 }
 
-export function ChevronRightIcon({ size = 20, color = "#8a929c" }: IconProps) {
+export function ChevronRightIcon({ size = 20, color = "#9A9A9A" }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -115,7 +115,7 @@ export function ChevronRightIcon({ size = 20, color = "#8a929c" }: IconProps) {
   );
 }
 
-export function CheckIcon({ size = 16, color = "#e6e8eb" }: IconProps) {
+export function CheckIcon({ size = 16, color = "#FFFFFF" }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Path
@@ -129,7 +129,7 @@ export function CheckIcon({ size = 16, color = "#e6e8eb" }: IconProps) {
   );
 }
 
-export function RadioOuter({ size = 22, color = "#8a929c", filled = false }: IconProps & { filled?: boolean }) {
+export function RadioOuter({ size = 22, color = "#9A9A9A", filled = false }: IconProps & { filled?: boolean }) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
       <Circle

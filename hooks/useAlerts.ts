@@ -18,6 +18,7 @@ export function useAlerts() {
     addAlert: useAlertsStore.getState().addAlert,
     updateAlert: useAlertsStore.getState().updateAlert,
     toggleAlert: useAlertsStore.getState().toggleAlert,
+    toggleAll: useAlertsStore.getState().toggleAll,
     removeAlert: useAlertsStore.getState().removeAlert,
     removeAll: useAlertsStore.getState().removeAll,
   };

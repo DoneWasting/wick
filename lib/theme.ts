@@ -1,11 +1,11 @@
 import { StyleSheet } from "react-native";
 
 export const colors = {
-  bg: "#0a0e14",
+  bg: "#0E0E0E",
   cardBg: "#111821",
   cardElevated: "#0f1620",
-  textPrimary: "#e6e8eb",
-  textSecondary: "#8a929c",
+  textPrimary: "#FFFFFF",
+  textSecondary: "#9A9A9A",
   textDisabled: "#4a525c",
   accentBlue: "#4a90e2",
   accentBlueDark: "#1e3a5f",
@@ -18,8 +18,8 @@ export const colors = {
   switchTrackOn: "#7fb0e8",
   switchThumbOn: "#1e3a5f",
   switchThumbOff: "#6b7380",
-  positive: "#4ade80",
-  negative: "#f87171",
+  positive: "#1FBF7A",
+  negative: "#E24B4A",
 } as const;
 
 export const s = StyleSheet.create({

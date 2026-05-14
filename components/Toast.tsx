@@ -49,7 +49,7 @@ export function Toast({ message, onHide }: Props) {
           borderColor: "#2a313c",
         }}
       >
-        <Text style={{ color: "#e6e8eb", textAlign: "center" }}>{message}</Text>
+        <Text style={{ color: "#FFFFFF", textAlign: "center" }}>{message}</Text>
       </Animated.View>
     </Animated.View>
   );

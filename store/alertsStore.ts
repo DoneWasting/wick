@@ -18,6 +18,7 @@ interface AlertsState {
     input: { market: Market; timeframe: Timeframe; notifyBefore: NotifyBefore[] }
   ) => Promise<{ ok: true } | { ok: false; reason: "duplicate" | "not_found" }>;
   toggleAlert: (id: string, enabled: boolean) => Promise<void>;
+  toggleAll: (enabled: boolean) => Promise<void>;
   removeAlert: (id: string) => Promise<void>;
   removeAll: () => Promise<void>;
   rescheduleAll: () => Promise<void>;
@@ -102,6 +103,16 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       await scheduleAlert(target);
     } else {
       await cancelAlert(id);
+    }
+  },
+
+  toggleAll: async (enabled) => {
+    const next = get().alerts.map((a) => ({ ...a, enabled }));
+    set({ alerts: next });
+    await persist(next);
+    await cancelAll();
+    if (enabled) {
+      await Promise.all(next.map((a) => scheduleAlert(a)));
     }
   },
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { Pressable, Switch, Text, View } from "react-native";
+import { Pressable, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import {
   Alert,
@@ -7,6 +7,7 @@ import {
   TIMEFRAME_CARD_LABELS,
 } from "../types";
 import { BellIcon, CandlestickIcon } from "./Icons";
+import { CandleToggle } from "./CandleToggle";
 import { colors } from "../lib/theme";
 import { useNow } from "../hooks/useNow";
 import { formatClock, formatCountdown, getNextFire } from "../lib/countdown";
@@ -71,12 +72,9 @@ export function AlertCard({ alert, onToggle }: Props) {
         </View>
 
         <View style={{ marginLeft: 12, alignSelf: "center" }}>
-          <Switch
+          <CandleToggle
             value={enabled}
             onValueChange={(v) => onToggle(alert.id, v)}
-            trackColor={{ false: colors.switchTrackOff, true: colors.switchTrackOn }}
-            thumbColor={enabled ? colors.switchThumbOn : colors.switchThumbOff}
-            ios_backgroundColor={colors.switchTrackOff}
           />
         </View>
       </Pressable>

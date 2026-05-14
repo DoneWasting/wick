@@ -6,21 +6,30 @@ import {
   TIMEFRAME_LABELS,
 } from "../types";
 import { getUpcomingCandleCloses } from "./candleMath";
-import { getSoundEnabled } from "./settings";
+import { getSoundEnabled, getVibrationEnabled } from "./settings";
 
 const isWeb = Platform.OS === "web";
 const isAndroid = Platform.OS === "android";
 
-// Android requires notifications to belong to a channel, and the sound +
+// Android requires notifications to belong to a channel, and sound + vibration +
 // lockscreen-visibility are bound to the channel (not the notification).
-// We use two channels so the in-app "Sound" toggle can switch between
-// them without prompting the user.
+// We use one channel per (sound, vibration) combination so the in-app "Sound"
+// and "Vibration" toggles can switch between them without prompting the user.
 //
 // IMPORTANT: once a channel is created on the device, the app cannot change
 // its properties. To roll out new defaults we bump the id (-v2, -v3 ...).
 // Old channels become orphaned in Settings but are harmless.
-export const ANDROID_CHANNEL_ID_SOUND = "candle-alerts-v2";
-export const ANDROID_CHANNEL_ID_SILENT = "candle-alerts-silent-v2";
+export const ANDROID_CHANNEL_ID_SOUND = "candle-alerts-v2"; // sound + vibration
+export const ANDROID_CHANNEL_ID_SOUND_NOVIB = "candle-alerts-novib-v1"; // sound, no vibration
+export const ANDROID_CHANNEL_ID_SILENT = "candle-alerts-silent-v2"; // silent + vibration
+export const ANDROID_CHANNEL_ID_SILENT_NOVIB = "candle-alerts-silent-novib-v1"; // silent, no vibration
+
+function pickChannelId(soundOn: boolean, vibrateOn: boolean): string {
+  if (soundOn) {
+    return vibrateOn ? ANDROID_CHANNEL_ID_SOUND : ANDROID_CHANNEL_ID_SOUND_NOVIB;
+  }
+  return vibrateOn ? ANDROID_CHANNEL_ID_SILENT : ANDROID_CHANNEL_ID_SILENT_NOVIB;
+}
 
 // How far into the future we eagerly schedule fires per alert.
 // 72 hours covers any reasonable "user closed the app for a while" gap.
@@ -177,31 +186,40 @@ export async function initWebNotificationsBackend(): Promise<ServiceWorkerRegist
  */
 export async function initAndroidChannels(): Promise<void> {
   if (!isAndroid) return;
-  await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID_SOUND, {
-    name: "Candle close alerts",
-    importance: Notifications.AndroidImportance.MAX, // MAX = heads-up + sound + wake
-    sound: "alert.mp3", // filename in android/app/src/main/res/raw/ (bundled by the plugin)
-    vibrationPattern: [0, 250, 250, 250],
-    lightColor: "#4a90e2",
-    enableVibrate: true,
-    // PUBLIC = full content visible on lock screen. Without this, many OEMs
-    // hide our notifications entirely when the device is locked, which is
-    // exactly the "nothing fires until I unlock" symptom.
-    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-    bypassDnd: false,
-    showBadge: true,
-  });
-  await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID_SILENT, {
-    name: "Candle close alerts (silent)",
-    importance: Notifications.AndroidImportance.HIGH, // still HIGH so it shows heads-up; just no sound
-    sound: null,
-    vibrationPattern: [0, 250, 250, 250],
-    lightColor: "#4a90e2",
-    enableVibrate: true,
-    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
-    bypassDnd: false,
-    showBadge: true,
-  });
+
+  // sound on → MAX (heads-up + sound + wake); sound off → still HIGH so it
+  // shows a heads-up, just without the chime.
+  const channelConfigs: Array<{
+    id: string;
+    name: string;
+    sound: string | null;
+    enableVibrate: boolean;
+  }> = [
+    { id: ANDROID_CHANNEL_ID_SOUND, name: "Candle close alerts", sound: "alert.mp3", enableVibrate: true },
+    { id: ANDROID_CHANNEL_ID_SOUND_NOVIB, name: "Candle close alerts (no vibration)", sound: "alert.mp3", enableVibrate: false },
+    { id: ANDROID_CHANNEL_ID_SILENT, name: "Candle close alerts (silent)", sound: null, enableVibrate: true },
+    { id: ANDROID_CHANNEL_ID_SILENT_NOVIB, name: "Candle close alerts (silent, no vibration)", sound: null, enableVibrate: false },
+  ];
+
+  for (const c of channelConfigs) {
+    await Notifications.setNotificationChannelAsync(c.id, {
+      name: c.name,
+      importance: c.sound
+        ? Notifications.AndroidImportance.MAX
+        : Notifications.AndroidImportance.HIGH,
+      // filename in android/app/src/main/res/raw/ (bundled by the plugin)
+      sound: c.sound,
+      enableVibrate: c.enableVibrate,
+      vibrationPattern: c.enableVibrate ? [0, 250, 250, 250] : undefined,
+      lightColor: "#4a90e2",
+      // PUBLIC = full content visible on lock screen. Without this, many OEMs
+      // hide our notifications entirely when the device is locked, which is
+      // exactly the "nothing fires until I unlock" symptom.
+      lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+      bypassDnd: false,
+      showBadge: true,
+    });
+  }
 }
 
 function fireWebNotification(title: string, body: string, tag?: string) {
@@ -236,6 +254,7 @@ export async function scheduleAlert(alert: Alert): Promise<void> {
   if (fires.length === 0) return;
 
   const soundOn = await getSoundEnabled();
+  const vibrateOn = await getVibrationEnabled();
 
   if (isWeb) {
     const reg = await getServiceWorker();
@@ -267,7 +286,7 @@ export async function scheduleAlert(alert: Alert): Promise<void> {
   }
 
   // Native
-  const channelId = soundOn ? ANDROID_CHANNEL_ID_SOUND : ANDROID_CHANNEL_ID_SILENT;
+  const channelId = pickChannelId(soundOn, vibrateOn);
   for (const f of fires) {
     await Notifications.scheduleNotificationAsync({
       identifier: f.id,
@@ -281,7 +300,9 @@ export async function scheduleAlert(alert: Alert): Promise<void> {
         // notification priority instead. Newer Android ignores this. Setting
         // it is harmless and broadens compatibility.
         priority: Notifications.AndroidNotificationPriority.MAX,
-        vibrate: [0, 250, 250, 250],
+        // Legacy Android (< 8.0) reads vibration from the notification, not
+        // the channel; omit it entirely when vibration is off.
+        vibrate: vibrateOn ? [0, 250, 250, 250] : undefined,
       },
       // Android reads the channel from the trigger object; iOS ignores it.
       trigger: isAndroid
@@ -344,7 +365,8 @@ export async function sendTestNotification(): Promise<boolean> {
     return true;
   }
   const soundOn = await getSoundEnabled();
-  const channelId = soundOn ? ANDROID_CHANNEL_ID_SOUND : ANDROID_CHANNEL_ID_SILENT;
+  const vibrateOn = await getVibrationEnabled();
+  const channelId = pickChannelId(soundOn, vibrateOn);
   await Notifications.scheduleNotificationAsync({
     content: {
       title,

@@ -18,14 +18,18 @@ import { colors } from "../lib/theme";
 import { useNow } from "../hooks/useNow";
 import { formatClock, formatUtcClock } from "../lib/countdown";
 import { Sidebar } from "../components/Sidebar";
+import { CandleToggle } from "../components/CandleToggle";
 
 export default function Home() {
   const router = useRouter();
-  const { alerts, hydrated, toggleAlert, removeAll } = useAlerts();
+  const { alerts, hydrated, toggleAlert, toggleAll, removeAll } = useAlerts();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const now = useNow(1000);
   const nowDate = new Date(now);
+
+  const activeCount = alerts.filter((a) => a.enabled).length;
+  const allEnabled = alerts.length > 0 && activeCount === alerts.length;
 
   const handleDeleteAll = () => {
     if (alerts.length === 0) return;
@@ -86,16 +90,43 @@ export default function Home() {
       >
         Now {formatClock(nowDate)} Local · {formatUtcClock(nowDate)} UTC
       </Text>
-      
 
       {!hydrated ? null : alerts.length === 0 ? (
         <EmptyState />
       ) : (
-        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 140 }}>
-          {alerts.map((a) => (
-            <AlertCard key={a.id} alert={a} onToggle={toggleAlert} />
-          ))}
-        </ScrollView>
+        <>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              marginHorizontal: 20,
+              marginBottom: 8,
+              paddingVertical: 12,
+              paddingHorizontal: 16,
+              borderRadius: 12,
+              backgroundColor: colors.cardElevated,
+              borderWidth: 1,
+              borderColor: colors.borderSubtle,
+            }}
+          >
+            <View>
+              <Text style={{ color: colors.textPrimary, fontSize: 15, fontWeight: "600" }}>
+                All alerts
+              </Text>
+              <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
+                {activeCount} of {alerts.length} active
+              </Text>
+            </View>
+            <CandleToggle value={allEnabled} onValueChange={(v) => void toggleAll(v)} />
+          </View>
+
+          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 140 }}>
+            {alerts.map((a) => (
+              <AlertCard key={a.id} alert={a} onToggle={toggleAlert} />
+            ))}
+          </ScrollView>
+        </>
       )}
 
       <Pressable
