@@ -9,6 +9,18 @@ import { getUpcomingCandleCloses } from "./candleMath";
 import { getSoundEnabled } from "./settings";
 
 const isWeb = Platform.OS === "web";
+const isAndroid = Platform.OS === "android";
+
+// Android requires notifications to belong to a channel, and the sound +
+// lockscreen-visibility are bound to the channel (not the notification).
+// We use two channels so the in-app "Sound" toggle can switch between
+// them without prompting the user.
+//
+// IMPORTANT: once a channel is created on the device, the app cannot change
+// its properties. To roll out new defaults we bump the id (-v2, -v3 ...).
+// Old channels become orphaned in Settings but are harmless.
+export const ANDROID_CHANNEL_ID_SOUND = "candle-alerts-v2";
+export const ANDROID_CHANNEL_ID_SILENT = "candle-alerts-silent-v2";
 
 // How far into the future we eagerly schedule fires per alert.
 // 72 hours covers any reasonable "user closed the app for a while" gap.
@@ -155,6 +167,43 @@ export async function initWebNotificationsBackend(): Promise<ServiceWorkerRegist
   return getServiceWorker();
 }
 
+/**
+ * Create both notification channels on Android. No-op everywhere else.
+ * Must run before the first notification is scheduled — call from _layout.
+ *
+ * Re-creating a channel with the same id is a no-op for properties like
+ * sound (Android caches them at first creation), so it's safe to call
+ * this on every app start.
+ */
+export async function initAndroidChannels(): Promise<void> {
+  if (!isAndroid) return;
+  await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID_SOUND, {
+    name: "Candle close alerts",
+    importance: Notifications.AndroidImportance.MAX, // MAX = heads-up + sound + wake
+    sound: "alert.mp3", // filename in android/app/src/main/res/raw/ (bundled by the plugin)
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: "#4a90e2",
+    enableVibrate: true,
+    // PUBLIC = full content visible on lock screen. Without this, many OEMs
+    // hide our notifications entirely when the device is locked, which is
+    // exactly the "nothing fires until I unlock" symptom.
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+    bypassDnd: false,
+    showBadge: true,
+  });
+  await Notifications.setNotificationChannelAsync(ANDROID_CHANNEL_ID_SILENT, {
+    name: "Candle close alerts (silent)",
+    importance: Notifications.AndroidImportance.HIGH, // still HIGH so it shows heads-up; just no sound
+    sound: null,
+    vibrationPattern: [0, 250, 250, 250],
+    lightColor: "#4a90e2",
+    enableVibrate: true,
+    lockscreenVisibility: Notifications.AndroidNotificationVisibility.PUBLIC,
+    bypassDnd: false,
+    showBadge: true,
+  });
+}
+
 function fireWebNotification(title: string, body: string, tag?: string) {
   if (typeof window === "undefined" || !("Notification" in window)) return;
   if (window.Notification.permission !== "granted") return;
@@ -218,11 +267,26 @@ export async function scheduleAlert(alert: Alert): Promise<void> {
   }
 
   // Native
+  const channelId = soundOn ? ANDROID_CHANNEL_ID_SOUND : ANDROID_CHANNEL_ID_SILENT;
   for (const f of fires) {
     await Notifications.scheduleNotificationAsync({
       identifier: f.id,
-      content: { title: f.title, body: f.body, sound: soundOn ? "default" : false },
-      trigger: new Date(f.fireAt),
+      content: {
+        title: f.title,
+        body: f.body,
+        // iOS reads sound from the content; pass the bundled filename when on,
+        // false to silence the per-notification chime when off.
+        sound: soundOn ? "alert.mp3" : false,
+        // Legacy Android (< 8.0) ignores channel importance and uses
+        // notification priority instead. Newer Android ignores this. Setting
+        // it is harmless and broadens compatibility.
+        priority: Notifications.AndroidNotificationPriority.MAX,
+        vibrate: [0, 250, 250, 250],
+      },
+      // Android reads the channel from the trigger object; iOS ignores it.
+      trigger: isAndroid
+        ? { date: f.fireAt, channelId }
+        : new Date(f.fireAt),
     });
   }
 }
@@ -280,9 +344,16 @@ export async function sendTestNotification(): Promise<boolean> {
     return true;
   }
   const soundOn = await getSoundEnabled();
+  const channelId = soundOn ? ANDROID_CHANNEL_ID_SOUND : ANDROID_CHANNEL_ID_SILENT;
   await Notifications.scheduleNotificationAsync({
-    content: { title, body, sound: soundOn ? "default" : false },
-    trigger: null,
+    content: {
+      title,
+      body,
+      sound: soundOn ? "alert.mp3" : false,
+    },
+    // For "fire immediately on Android" we need an object trigger so we can
+    // attach channelId. seconds: 1 is close enough to immediate.
+    trigger: isAndroid ? { seconds: 1, channelId } : null,
   });
   return true;
 }

@@ -1,8 +1,10 @@
 import React, { useEffect, useRef } from "react";
 import {
+  Alert as RNAlert,
   Animated,
   Dimensions,
   Easing,
+  Platform,
   Pressable,
   Text,
   View,
@@ -118,10 +120,13 @@ export function Sidebar({ open, onClose, onConfirmClearAll }: Props) {
           label="Send test notification"
           onPress={handle(async () => {
             const ok = await sendTestNotification();
-            if (!ok && typeof window !== "undefined" && "alert" in window) {
-              window.alert(
-                "Notifications are blocked. Enable them in your browser/OS settings."
-              );
+            if (ok) return;
+            const msg =
+              "Notifications are blocked. Enable them in your phone/browser settings to receive alerts.";
+            if (Platform.OS === "web" && typeof window !== "undefined") {
+              window.alert(msg);
+            } else {
+              RNAlert.alert("Notifications blocked", msg);
             }
           })}
         />

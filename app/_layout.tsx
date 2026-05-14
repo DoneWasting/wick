@@ -3,7 +3,11 @@ import { Platform, StatusBar, View } from "react-native";
 import { Stack } from "expo-router";
 import * as Notifications from "expo-notifications";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { ensurePermissions, initWebNotificationsBackend } from "../lib/notifications";
+import {
+  ensurePermissions,
+  initAndroidChannels,
+  initWebNotificationsBackend,
+} from "../lib/notifications";
 import { useAlerts } from "../hooks/useAlerts";
 import { useCandleScheduler } from "../hooks/useCandleScheduler";
 import { colors } from "../lib/theme";
@@ -30,6 +34,9 @@ export default function RootLayout() {
     // Notification Triggers scheduling so notifications survive tab closure
     // on Chromium-based browsers.
     void initWebNotificationsBackend();
+    // Register Android notification channels (no-op on web/iOS). Channels
+    // own the sound on Android, so this must run before scheduleAlert.
+    void initAndroidChannels();
   }, []);
 
   return (

@@ -23,7 +23,10 @@
       },
       "permissions": [
         "NOTIFICATIONS",
-        "POST_NOTIFICATIONS"
+        "POST_NOTIFICATIONS",
+        "USE_EXACT_ALARM",
+        "SCHEDULE_EXACT_ALARM",
+        "WAKE_LOCK"
       ]
     },
     "web": {
@@ -35,7 +38,8 @@
       [
         "expo-notifications",
         {
-          "color": "#4a90e2"
+          "color": "#4a90e2",
+          "sounds": ["./assets/sounds/alert.mp3"]
         }
       ]
     ],
