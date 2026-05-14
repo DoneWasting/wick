@@ -19,6 +19,24 @@ export function CandlestickIcon({ size = 22, color = "#9A9A9A" }: IconProps) {
   );
 }
 
+export function TimerIcon({ size = 22, color = "#9A9A9A" }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="13" r="8" stroke={color} strokeWidth="1.7" fill="none" />
+      <Path
+        d="M12 9v4l2.5 2"
+        stroke={color}
+        strokeWidth="1.7"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+      <Line x1="9" y1="2.6" x2="15" y2="2.6" stroke={color} strokeWidth="1.7" strokeLinecap="round" />
+      <Line x1="12" y1="2.6" x2="12" y2="5" stroke={color} strokeWidth="1.7" strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 export function BellIcon({ size = 18, color = "#9A9A9A" }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">

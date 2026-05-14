@@ -1,8 +1,6 @@
 import React, { useState } from "react";
 import {
-  Alert as RNAlert,
   Image,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -13,10 +11,15 @@ import { useRouter } from "expo-router";
 import { useAlerts } from "../hooks/useAlerts";
 import { AlertCard } from "../components/AlertCard";
 import { EmptyState } from "../components/EmptyState";
-import { MenuIcon, PlusIcon, TrashIcon } from "../components/Icons";
+import { MenuIcon, PlusIcon } from "../components/Icons";
 import { colors } from "../lib/theme";
 import { useNow } from "../hooks/useNow";
-import { formatClock, formatUtcClock } from "../lib/countdown";
+import {
+  formatClock,
+  formatCountdown,
+  formatUtcClock,
+  getNextFire,
+} from "../lib/countdown";
 import { Sidebar } from "../components/Sidebar";
 import { CandleToggle } from "../components/CandleToggle";
 
@@ -29,24 +32,12 @@ export default function Home() {
   const nowDate = new Date(now);
 
   const activeCount = alerts.filter((a) => a.enabled).length;
-  const allEnabled = alerts.length > 0 && activeCount === alerts.length;
+  const someEnabled = activeCount > 0;
 
-  const handleDeleteAll = () => {
-    if (alerts.length === 0) return;
-    if (Platform.OS === "web") {
-      setConfirmDelete(true);
-      return;
-    }
-    RNAlert.alert(
-      "Delete all alerts?",
-      "This cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: () => void removeAll() },
-      ],
-      { cancelable: true }
-    );
-  };
+  const nextFireAt = alerts
+    .filter((a) => a.enabled)
+    .reduce((min, a) => Math.min(min, getNextFire(a, now).fireAt), Infinity);
+  const hasNextFire = Number.isFinite(nextFireAt);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={["top", "left", "right"]}>
@@ -62,9 +53,6 @@ export default function Home() {
       >
         <Pressable hitSlop={10} onPress={() => setSidebarOpen(true)}>
           <MenuIcon size={26} color={colors.textPrimary} />
-        </Pressable>
-        <Pressable hitSlop={10} onPress={handleDeleteAll}>
-          <TrashIcon size={24} color={colors.textPrimary} />
         </Pressable>
       </View>
 
@@ -110,15 +98,20 @@ export default function Home() {
               borderColor: colors.borderSubtle,
             }}
           >
-            <View>
+            <View style={{ flex: 1 }}>
               <Text style={{ color: colors.textPrimary, fontSize: 15, fontWeight: "600" }}>
                 All alerts
               </Text>
               <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 2 }}>
                 {activeCount} of {alerts.length} active
               </Text>
+              {hasNextFire && (
+                <Text style={{ color: colors.accentBlueSoft, fontSize: 12, marginTop: 4 }}>
+                  Next alert: {formatCountdown(nextFireAt - now)}
+                </Text>
+              )}
             </View>
-            <CandleToggle value={allEnabled} onValueChange={(v) => void toggleAll(v)} />
+            <CandleToggle value={someEnabled} onValueChange={(v) => void toggleAll(v)} />
           </View>
 
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 140 }}>
@@ -138,7 +131,7 @@ export default function Home() {
           width: 56,
           height: 56,
           borderRadius: 14,
-          backgroundColor: colors.accentBlueDark,
+          backgroundColor: colors.positive,
           alignItems: "center",
           justifyContent: "center",
           shadowColor: "#000",

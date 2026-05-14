@@ -6,7 +6,7 @@ import {
   NOTIFY_BEFORE_LABELS,
   TIMEFRAME_CARD_LABELS,
 } from "../types";
-import { BellIcon, CandlestickIcon } from "./Icons";
+import { BellIcon, TimerIcon } from "./Icons";
 import { CandleToggle } from "./CandleToggle";
 import { colors } from "../lib/theme";
 import { useNow } from "../hooks/useNow";
@@ -38,7 +38,7 @@ export function AlertCard({ alert, onToggle }: Props) {
         }}
       >
         <View style={{ marginTop: 4, marginRight: 16 }}>
-          <CandlestickIcon size={22} color={iconColor} />
+          <TimerIcon size={22} color={iconColor} />
         </View>
 
         <View style={{ flex: 1 }}>
