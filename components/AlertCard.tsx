@@ -15,9 +15,11 @@ import { formatClock, formatCountdown, getNextFire } from "../lib/countdown";
 interface Props {
   alert: Alert;
   onToggle: (id: string, next: boolean) => void;
+  onLongPress?: () => void;
+  isDragging?: boolean;
 }
 
-export function AlertCard({ alert, onToggle }: Props) {
+export function AlertCard({ alert, onToggle, onLongPress, isDragging }: Props) {
   const router = useRouter();
   const enabled = alert.enabled;
   const dim = !enabled;
@@ -27,9 +29,18 @@ export function AlertCard({ alert, onToggle }: Props) {
   const iconColor = dim ? colors.textDisabled : colors.textSecondary;
 
   return (
-    <View style={{ borderBottomWidth: 1, borderBottomColor: colors.borderSubtle }}>
+    <View
+      style={{
+        borderBottomWidth: 1,
+        borderBottomColor: colors.borderSubtle,
+        backgroundColor: isDragging ? colors.cardElevated : "transparent",
+        opacity: isDragging ? 0.92 : 1,
+      }}
+    >
       <Pressable
         onPress={() => router.push(`/edit/${alert.id}`)}
+        onLongPress={onLongPress}
+        delayLongPress={250}
         style={{
           flexDirection: "row",
           alignItems: "flex-start",

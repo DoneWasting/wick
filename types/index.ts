@@ -2,7 +2,8 @@ export type Market = "forex" | "crypto";
 
 export type Timeframe = "1m" | "5m" | "15m" | "30m" | "1h" | "4h";
 
-export type NotifyBefore = 0 | 1 | 2 | 3 | 5 | 10;
+// Values are minutes before candle close. 0.5 = 30 seconds.
+export type NotifyBefore = 0 | 0.5 | 1 | 2 | 3 | 5 | 10;
 
 export interface Alert {
   id: string;
@@ -42,6 +43,7 @@ export const TIMEFRAME_CARD_LABELS: Record<Timeframe, string> = {
 
 export const NOTIFY_BEFORE_LABELS: Record<NotifyBefore, string> = {
   0: "At closing time",
+  0.5: "30 seconds before",
   1: "1 minute before",
   2: "2 minutes before",
   3: "3 minutes before",
@@ -50,4 +52,4 @@ export const NOTIFY_BEFORE_LABELS: Record<NotifyBefore, string> = {
 };
 
 export const ALL_TIMEFRAMES: Timeframe[] = ["1m", "5m", "15m", "30m", "1h", "4h"];
-export const ALL_NOTIFY_BEFORE: NotifyBefore[] = [0, 1, 2, 3, 5, 10];
+export const ALL_NOTIFY_BEFORE: NotifyBefore[] = [0, 0.5, 1, 2, 3, 5, 10];

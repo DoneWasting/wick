@@ -42,6 +42,45 @@ const MAX_FIRES_PER_ALERT = 50;
 type WebTimer = ReturnType<typeof setTimeout>;
 const webTimers: Map<string, WebTimer[]> = new Map();
 
+// Monotonic epoch tagged onto every SW message. The SW remembers the latest
+// CANCEL/CANCEL_ALL epoch and drops any SCHEDULE that was decided before it,
+// so a late-arriving (or post-restart) schedule can never re-arm something
+// the user just turned off.
+let nextEpoch = 0;
+function newEpoch(): number {
+  return ++nextEpoch;
+}
+
+// Prefer the active worker; fall back to waiting/installing so a message
+// posted during a SW update transition isn't silently dropped.
+function pickSwTarget(reg: ServiceWorkerRegistration): ServiceWorker | null {
+  return reg.active || reg.waiting || reg.installing || null;
+}
+
+// Round-trip a message through the SW using a MessageChannel so the caller
+// can await actual completion rather than fire-and-forget. The 5s timeout
+// guards against a wedged or terminated SW — caller continues either way.
+function sendSwMessage(target: ServiceWorker, msg: unknown): Promise<void> {
+  return new Promise<void>((resolve) => {
+    const channel = new MessageChannel();
+    const done = () => {
+      try { channel.port1.close(); } catch {}
+      resolve();
+    };
+    const timeout = setTimeout(done, 5000);
+    channel.port1.onmessage = () => {
+      clearTimeout(timeout);
+      done();
+    };
+    try {
+      target.postMessage(msg, [channel.port2]);
+    } catch {
+      clearTimeout(timeout);
+      done();
+    }
+  });
+}
+
 // Identifier embeds the fire timestamp so each fire is unique and can be
 // cancelled individually. The alert id is the prefix, which lets us cancel
 // the whole alert via getAllScheduledNotificationsAsync + startsWith filter.
@@ -84,10 +123,15 @@ function buildContent(alert: Alert, notifyBefore: NotifyBefore) {
   const tfLabel = TIMEFRAME_LABELS[alert.timeframe];
   const marketLabel = alert.market === "forex" ? "Forex" : "Crypto";
   const title = `${tfLabel} candle closing`;
-  const body =
-    notifyBefore === 0
-      ? `Candle is closing now — ${marketLabel}`
-      : `Closes in ${notifyBefore} minute${notifyBefore === 1 ? "" : "s"} — ${marketLabel}`;
+  let lead: string;
+  if (notifyBefore === 0) {
+    lead = "Candle is closing now";
+  } else if (notifyBefore < 1) {
+    lead = `Closes in ${notifyBefore * 60} seconds`;
+  } else {
+    lead = `Closes in ${notifyBefore} minute${notifyBefore === 1 ? "" : "s"}`;
+  }
+  const body = `${lead} — ${marketLabel}`;
   return { title, body };
 }
 
@@ -258,11 +302,13 @@ export async function scheduleAlert(alert: Alert): Promise<void> {
 
   if (isWeb) {
     const reg = await getServiceWorker();
-    if (reg && reg.active) {
-      reg.active.postMessage({
+    const target = reg ? pickSwTarget(reg) : null;
+    if (target) {
+      await sendSwMessage(target, {
         type: "SCHEDULE",
         payload: {
           alertId: alert.id,
+          epoch: newEpoch(),
           fires: fires.map((f) => ({
             fireAt: f.fireAt,
             title: f.title,
@@ -320,8 +366,12 @@ export async function cancelAlert(alertId: string): Promise<void> {
       webTimers.delete(alertId);
     }
     const reg = await getServiceWorker();
-    if (reg && reg.active) {
-      reg.active.postMessage({ type: "CANCEL", payload: { alertId } });
+    const target = reg ? pickSwTarget(reg) : null;
+    if (target) {
+      await sendSwMessage(target, {
+        type: "CANCEL",
+        payload: { alertId, epoch: newEpoch() },
+      });
     }
     return;
   }
@@ -338,8 +388,12 @@ export async function cancelAll(): Promise<void> {
     webTimers.forEach((arr) => arr.forEach(clearTimeout));
     webTimers.clear();
     const reg = await getServiceWorker();
-    if (reg && reg.active) {
-      reg.active.postMessage({ type: "CANCEL_ALL" });
+    const target = reg ? pickSwTarget(reg) : null;
+    if (target) {
+      await sendSwMessage(target, {
+        type: "CANCEL_ALL",
+        payload: { epoch: newEpoch() },
+      });
     }
     return;
   }

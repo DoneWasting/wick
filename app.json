@@ -33,6 +33,11 @@
         "POST_NOTIFICATIONS",
         "USE_EXACT_ALARM",
         "SCHEDULE_EXACT_ALARM",
+        "WAKE_LOCK",
+        "NOTIFICATIONS",
+        "POST_NOTIFICATIONS",
+        "USE_EXACT_ALARM",
+        "SCHEDULE_EXACT_ALARM",
         "WAKE_LOCK"
       ]
     },
@@ -46,7 +51,9 @@
         "expo-notifications",
         {
           "color": "#1FBF7A",
-          "sounds": ["./assets/sounds/alert.mp3"]
+          "sounds": [
+            "./assets/sounds/alert.mp3"
+          ]
         }
       ]
     ],
@@ -58,6 +65,12 @@
         "projectId": "1ca5ea7f-dc58-453a-97bb-ede8c042eaee"
       }
     },
-    "owner": "donewasting"
+    "owner": "donewasting",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/1ca5ea7f-dc58-453a-97bb-ede8c042eaee"
+    }
   }
 }

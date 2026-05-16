@@ -1,26 +1,16 @@
 {
   "cli": {
-    "version": ">=5.0.0",
-    "appVersionSource": "local"
+    "version": ">= 7.0.0"
   },
   "build": {
     "preview": {
-      "distribution": "internal",
       "android": {
         "buildType": "apk"
-      }
-    },
-    "development": {
-      "developmentClient": true,
-      "distribution": "internal",
-      "android": {
-        "buildType": "apk"
-      }
+      },
+      "channel": "preview"
     },
     "production": {
-      "android": {
-        "buildType": "app-bundle"
-      }
+      "channel": "production"
     }
   }
 }

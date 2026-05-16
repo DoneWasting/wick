@@ -2,14 +2,13 @@ import React, { useState } from "react";
 import {
   Image,
   Pressable,
-  ScrollView,
   Text,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { useAlerts } from "../hooks/useAlerts";
-import { AlertCard } from "../components/AlertCard";
+import { AlertList } from "../components/AlertList";
 import { EmptyState } from "../components/EmptyState";
 import { MenuIcon, PlusIcon } from "../components/Icons";
 import { colors } from "../lib/theme";
@@ -25,7 +24,14 @@ import { CandleToggle } from "../components/CandleToggle";
 
 export default function Home() {
   const router = useRouter();
-  const { alerts, hydrated, toggleAlert, toggleAll, removeAll } = useAlerts();
+  const {
+    alerts,
+    hydrated,
+    toggleAlert,
+    toggleAll,
+    removeAll,
+    reorderAlerts,
+  } = useAlerts();
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const now = useNow(1000);
@@ -114,11 +120,11 @@ export default function Home() {
             <CandleToggle value={someEnabled} onValueChange={(v) => void toggleAll(v)} />
           </View>
 
-          <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 140 }}>
-            {alerts.map((a) => (
-              <AlertCard key={a.id} alert={a} onToggle={toggleAlert} />
-            ))}
-          </ScrollView>
+          <AlertList
+            alerts={alerts}
+            onToggle={toggleAlert}
+            onReorder={(next) => void reorderAlerts(next)}
+          />
         </>
       )}
 

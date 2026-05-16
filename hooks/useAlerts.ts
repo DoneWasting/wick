@@ -21,5 +21,6 @@ export function useAlerts() {
     toggleAll: useAlertsStore.getState().toggleAll,
     removeAlert: useAlertsStore.getState().removeAlert,
     removeAll: useAlertsStore.getState().removeAll,
+    reorderAlerts: useAlertsStore.getState().reorderAlerts,
   };
 }

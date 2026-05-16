@@ -1,10 +1,16 @@
 import { create } from "zustand";
-import { Alert, Market, NotifyBefore, Timeframe } from "../types";
-import { loadAlerts, saveAlerts, clearAlerts } from "../lib/storage";
+import { Alert, Market, NotifyBefore, Timeframe, TIMEFRAME_MINUTES } from "../types";
+import {
+  loadAlerts,
+  saveAlerts,
+  saveManuallyOrdered,
+  clearAlerts,
+} from "../lib/storage";
 import { cancelAlert, cancelAll, scheduleAlert } from "../lib/notifications";
 
 interface AlertsState {
   alerts: Alert[];
+  manuallyOrdered: boolean;
   hydrated: boolean;
 
   hydrate: () => Promise<void>;
@@ -21,6 +27,7 @@ interface AlertsState {
   toggleAll: (enabled: boolean) => Promise<void>;
   removeAlert: (id: string) => Promise<void>;
   removeAll: () => Promise<void>;
+  reorderAlerts: (alerts: Alert[]) => Promise<void>;
   rescheduleAll: () => Promise<void>;
 }
 
@@ -32,17 +39,33 @@ function makeId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
+function sortByTimeframe(alerts: Alert[]): Alert[] {
+  return [...alerts].sort(
+    (a, b) => TIMEFRAME_MINUTES[a.timeframe] - TIMEFRAME_MINUTES[b.timeframe]
+  );
+}
+
 async function persist(alerts: Alert[]) {
   await saveAlerts(alerts);
 }
 
 export const useAlertsStore = create<AlertsState>((set, get) => ({
   alerts: [],
+  manuallyOrdered: false,
   hydrated: false,
 
   hydrate: async () => {
-    const alerts = await loadAlerts();
-    set({ alerts, hydrated: true });
+    const { alerts, manuallyOrdered } = await loadAlerts();
+    // Default view is time-ascending. Manual order takes precedence once the
+    // user has dragged at least once — we leave the persisted order untouched
+    // in that case.
+    const ordered = manuallyOrdered ? alerts : sortByTimeframe(alerts);
+    set({ alerts: ordered, manuallyOrdered, hydrated: true });
+    if (!manuallyOrdered && ordered.length > 0) {
+      // Persist the sorted view so the next launch is consistent even before
+      // any further mutations.
+      await persist(ordered);
+    }
   },
 
   addAlert: async ({ market, timeframe, notifyBefore }) => {
@@ -60,7 +83,14 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
       createdAt: Date.now(),
     };
 
-    const next = [...get().alerts, alert];
+    const current = get().alerts;
+    // Even when the user has a manual order, new alerts are placed in their
+    // natural time-sorted slot rather than appended to the end. The user's
+    // existing relative ordering of the other items is preserved by using a
+    // stable sort and only inserting the new alert.
+    const next = get().manuallyOrdered
+      ? insertByTimeframe(current, alert)
+      : sortByTimeframe([...current, alert]);
     set({ alerts: next });
     await persist(next);
     await scheduleAlert(alert);
@@ -94,6 +124,8 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
   },
 
   toggleAlert: async (id, enabled) => {
+    // Order is intentionally untouched here so toggling never re-sorts the
+    // list and never disrupts the user's manual drag order.
     const next = get().alerts.map((a) => (a.id === id ? { ...a, enabled } : a));
     set({ alerts: next });
     await persist(next);
@@ -124,9 +156,15 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
   },
 
   removeAll: async () => {
-    set({ alerts: [] });
+    set({ alerts: [], manuallyOrdered: false });
     await clearAlerts();
     await cancelAll();
+  },
+
+  reorderAlerts: async (alerts) => {
+    set({ alerts, manuallyOrdered: true });
+    await persist(alerts);
+    await saveManuallyOrdered(true);
   },
 
   rescheduleAll: async () => {
@@ -135,3 +173,12 @@ export const useAlertsStore = create<AlertsState>((set, get) => ({
     await Promise.all(alerts.filter((a) => a.enabled).map((a) => scheduleAlert(a)));
   },
 }));
+
+function insertByTimeframe(alerts: Alert[], newAlert: Alert): Alert[] {
+  const newMin = TIMEFRAME_MINUTES[newAlert.timeframe];
+  const idx = alerts.findIndex(
+    (a) => TIMEFRAME_MINUTES[a.timeframe] > newMin
+  );
+  if (idx === -1) return [...alerts, newAlert];
+  return [...alerts.slice(0, idx), newAlert, ...alerts.slice(idx)];
+}

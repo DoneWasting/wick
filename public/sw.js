@@ -14,10 +14,39 @@
 //      the OS will eventually terminate the SW and timers die with it.
 //      For long horizons on non-Chromium browsers, treat this as tab-must-
 //      be-open behavior — same as before the SW existed.
+//
+// Concurrency:
+//   All SCHEDULE/CANCEL/CANCEL_ALL messages run through one serial promise
+//   chain so an in-flight SCHEDULE cannot finish *after* a later CANCEL_ALL
+//   and leak a TimestampTrigger registration. Each message also carries an
+//   epoch counter from the main thread; CANCEL/CANCEL_ALL bump
+//   `latestCancelEpoch` and any SCHEDULE with a stale epoch is dropped — a
+//   second line of defense for SW restarts and multi-client posting.
+//   Messages can include a MessagePort in `event.ports[0]`; we post `{ok:true}`
+//   to it when the work for that message completes, so the main thread can
+//   await actual completion instead of fire-and-forget postMessage.
 
 /* global self, clients */
 
 const FALLBACK_TIMERS = new Map(); // tag -> timeout id (only used when no TimestampTrigger)
+
+let messageQueue = Promise.resolve();
+let latestCancelEpoch = 0;
+
+function enqueue(fn) {
+  // Errors are swallowed so a single failing handler does not poison the chain.
+  messageQueue = messageQueue.then(() => fn().catch(() => {}));
+  return messageQueue;
+}
+
+function ack(port) {
+  if (!port) return;
+  try {
+    port.postMessage({ ok: true });
+  } catch {
+    // Port already closed — main thread bailed via timeout. Harmless.
+  }
+}
 
 self.addEventListener("install", (event) => {
   self.skipWaiting();
@@ -107,41 +136,57 @@ self.addEventListener("message", (event) => {
   const msg = event.data;
   if (!msg || typeof msg !== "object") return;
 
-  if (msg.type === "SCHEDULE") {
-    const { alertId, fires } = msg.payload || {};
-    if (!alertId || !Array.isArray(fires)) return;
-    event.waitUntil(
-      (async () => {
-        // Defensive: cancel any prior scheduled fires for this alert first.
-        await cancelByPrefix(alertId);
-        for (const f of fires) {
-          await scheduleOne(f);
+  const port = event.ports && event.ports[0];
+  const source = event.source;
+
+  event.waitUntil(
+    enqueue(async () => {
+      try {
+        if (msg.type === "SCHEDULE") {
+          const { alertId, fires, epoch } = msg.payload || {};
+          if (!alertId || !Array.isArray(fires)) return;
+          // Drop schedules that were decided before the latest cancellation.
+          if (typeof epoch === "number" && epoch <= latestCancelEpoch) return;
+          await cancelByPrefix(alertId);
+          for (const f of fires) {
+            await scheduleOne(f);
+          }
+          return;
         }
-      })()
-    );
-    return;
-  }
 
-  if (msg.type === "CANCEL") {
-    const { alertId } = msg.payload || {};
-    if (!alertId) return;
-    event.waitUntil(cancelByPrefix(alertId));
-    return;
-  }
+        if (msg.type === "CANCEL") {
+          const { alertId, epoch } = msg.payload || {};
+          if (!alertId) return;
+          if (typeof epoch === "number" && epoch > latestCancelEpoch) {
+            latestCancelEpoch = epoch;
+          }
+          await cancelByPrefix(alertId);
+          return;
+        }
 
-  if (msg.type === "CANCEL_ALL") {
-    event.waitUntil(cancelAll());
-    return;
-  }
+        if (msg.type === "CANCEL_ALL") {
+          const epoch = msg.payload && msg.payload.epoch;
+          if (typeof epoch === "number" && epoch > latestCancelEpoch) {
+            latestCancelEpoch = epoch;
+          }
+          await cancelAll();
+          return;
+        }
 
-  if (msg.type === "PING") {
-    // Reply via the source client so the main thread can confirm SW is live.
-    event.source &&
-      event.source.postMessage({
-        type: "PONG",
-        hasTimestampTrigger: hasTimestampTrigger(),
-      });
-  }
+        if (msg.type === "PING") {
+          if (source) {
+            source.postMessage({
+              type: "PONG",
+              hasTimestampTrigger: hasTimestampTrigger(),
+            });
+          }
+          return;
+        }
+      } finally {
+        ack(port);
+      }
+    })
+  );
 });
 
 // Clicking a notification focuses an existing tab or opens a new one.

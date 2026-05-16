@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { Platform, StatusBar, View } from "react-native";
 import { Stack } from "expo-router";
 import * as Notifications from "expo-notifications";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import {
   ensurePermissions,
@@ -40,31 +41,33 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <SafeAreaProvider>
-      <View style={{ flex: 1, backgroundColor: colors.bg }}>
-        <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
-        <Stack
-          screenOptions={{
-            headerShown: false,
-            contentStyle: { backgroundColor: colors.bg },
-            animation: "slide_from_bottom",
-          }}
-        >
-          <Stack.Screen name="index" />
-          <Stack.Screen
-            name="create"
-            options={{ presentation: "modal", animation: "slide_from_bottom" }}
-          />
-          <Stack.Screen
-            name="edit/[id]"
-            options={{ presentation: "modal", animation: "slide_from_bottom" }}
-          />
-          <Stack.Screen
-            name="settings"
-            options={{ presentation: "card", animation: "slide_from_right" }}
-          />
-        </Stack>
-      </View>
-    </SafeAreaProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <View style={{ flex: 1, backgroundColor: colors.bg }}>
+          <StatusBar barStyle="light-content" backgroundColor={colors.bg} />
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: colors.bg },
+              animation: "slide_from_bottom",
+            }}
+          >
+            <Stack.Screen name="index" />
+            <Stack.Screen
+              name="create"
+              options={{ presentation: "modal", animation: "slide_from_bottom" }}
+            />
+            <Stack.Screen
+              name="edit/[id]"
+              options={{ presentation: "modal", animation: "slide_from_bottom" }}
+            />
+            <Stack.Screen
+              name="settings"
+              options={{ presentation: "card", animation: "slide_from_right" }}
+            />
+          </Stack>
+        </View>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 }
