@@ -1,15 +1,26 @@
 import React from "react";
 import { Pressable, Text, View } from "react-native";
 import { colors } from "../lib/theme";
+import * as haptics from "../lib/haptics";
 
 interface Props {
   label: string;
   onPress: () => void;
   disabled?: boolean;
   variant?: "filled" | "text";
+  // "positive" paints the filled variant with the bullish green — used for
+  // create entry points (the FAB and the empty-state CTA) so they read as
+  // the same action. Ignored for the text variant.
+  tone?: "default" | "positive";
 }
 
-export function PrimaryButton({ label, onPress, disabled, variant = "filled" }: Props) {
+export function PrimaryButton({
+  label,
+  onPress,
+  disabled,
+  variant = "filled",
+  tone = "default",
+}: Props) {
   if (variant === "text") {
     return (
       <Pressable onPress={onPress} disabled={disabled} hitSlop={6}>
@@ -21,13 +32,26 @@ export function PrimaryButton({ label, onPress, disabled, variant = "filled" }: 
   }
 
   return (
-    <Pressable onPress={onPress} disabled={disabled}>
+    <Pressable
+      onPress={() => {
+        if (disabled) return;
+        // Tactile beat on filled-button commits (Create, Save, Continue).
+        // Text variant is treated as low-stakes and stays silent.
+        haptics.impactLight();
+        onPress();
+      }}
+      disabled={disabled}
+    >
       <View
         style={{
           borderRadius: 999,
           paddingHorizontal: 28,
           paddingVertical: 12,
-          backgroundColor: disabled ? colors.buttonFilledDisabled : colors.buttonFilled,
+          backgroundColor: disabled
+            ? colors.buttonFilledDisabled
+            : tone === "positive"
+              ? colors.positive
+              : colors.buttonFilled,
           opacity: disabled ? 0.7 : 1,
         }}
       >

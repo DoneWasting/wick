@@ -7,18 +7,17 @@ export const colors = {
   textPrimary: "#FFFFFF",
   textSecondary: "#9A9A9A",
   textDisabled: "#4a525c",
+  // Neutral interactive accent. Used for selected radio/checkbox state and
+  // for non-destructive dismiss actions ("Cancel"). Codified in BRAND.md
+  // alongside the bullish/bearish signal colors.
   accentBlue: "#4a90e2",
-  accentBlueDark: "#1e3a5f",
-  accentBlueSoft: "#7fb0e8",
   borderSubtle: "#242424",
   divider: "#242424",
   buttonFilled: "#374a63",
   buttonFilledDisabled: "#2a313c",
-  switchTrackOff: "#2a313c",
-  switchTrackOn: "#7fb0e8",
-  switchThumbOn: "#1e3a5f",
-  switchThumbOff: "#6b7380",
+  // Bullish (on / positive / next-event). Signal color from BRAND.md.
   positive: "#1FBF7A",
+  // Bearish (off / destructive). Signal color from BRAND.md.
   negative: "#E24B4A",
 } as const;
 

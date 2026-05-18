@@ -9,6 +9,7 @@ import {
 } from "../types";
 import { CheckIcon } from "./Icons";
 import { colors } from "../lib/theme";
+import * as haptics from "../lib/haptics";
 
 interface Props {
   timeframe: Timeframe | null;
@@ -30,7 +31,10 @@ export function NotificationTimingPicker({ timeframe, selected, onToggle }: Prop
         return (
           <Pressable
             key={nb}
-            onPress={() => onToggle(nb)}
+            onPress={() => {
+              haptics.selection();
+              onToggle(nb);
+            }}
             style={{
               flexDirection: "row",
               alignItems: "center",

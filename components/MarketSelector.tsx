@@ -3,6 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { Market } from "../types";
 import { RadioOuter } from "./Icons";
 import { colors } from "../lib/theme";
+import * as haptics from "../lib/haptics";
 
 interface Props {
   value: Market | null;
@@ -22,7 +23,10 @@ export function MarketSelector({ value, onChange }: Props) {
         return (
           <Pressable
             key={opt.value}
-            onPress={() => onChange(opt.value)}
+            onPress={() => {
+              if (!selected) haptics.selection();
+              onChange(opt.value);
+            }}
             style={{ flexDirection: "row", alignItems: "center", paddingVertical: 12 }}
           >
             <RadioOuter filled={selected} size={26} />

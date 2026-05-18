@@ -1,18 +1,12 @@
 import React, { useEffect, useState } from "react";
-import {
-  Platform,
-  Pressable,
-  ScrollView,
-  Switch,
-  Text,
-  View,
-} from "react-native";
+import { Platform, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import Constants from "expo-constants";
 import { colors } from "../lib/theme";
-import { PrimaryButton } from "../components/PrimaryButton";
-import { ChevronRightIcon } from "../components/Icons";
+import { ChevronLeftIcon } from "../components/Icons";
+import { CandleToggle } from "../components/CandleToggle";
+import { ChipButton } from "../components/ChipButton";
 import {
   ensurePermissions,
   getPermissionState,
@@ -26,6 +20,7 @@ import {
   setVibrationEnabled,
 } from "../lib/settings";
 import { useAlertsStore } from "../store/alertsStore";
+import { toast } from "../lib/toast";
 
 export default function Settings() {
   const router = useRouter();
@@ -35,7 +30,6 @@ export default function Settings() {
   const [soundOn, setSoundOn] = useState(true);
   const [vibrationOn, setVibrationOn] = useState(true);
   const [permission, setPermission] = useState<PermissionState>("default");
-  const [testMsg, setTestMsg] = useState<string | null>(null);
 
   // Hydrate the sound + vibration preferences once on mount.
   useEffect(() => {
@@ -74,25 +68,22 @@ export default function Settings() {
       style={{ flex: 1, backgroundColor: colors.bg }}
       edges={["top", "bottom", "left", "right"]}
     >
-      <View
-        style={{
-          flexDirection: "row",
-          alignItems: "center",
-          paddingHorizontal: 16,
-          paddingVertical: 12,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.borderSubtle,
-        }}
-      >
+      {/* Header: matches create/edit (24pt title + subtitle) with a proper
+          back chevron above. iOS Settings pattern. */}
+      <View style={{ paddingHorizontal: 20, paddingTop: 12 }}>
         <Pressable
           onPress={() => router.back()}
           hitSlop={10}
-          style={{ transform: [{ rotate: "180deg" }], marginRight: 12 }}
+          style={{ alignSelf: "flex-start", paddingVertical: 4, marginBottom: 4 }}
+          accessibilityLabel="Back"
         >
-          <ChevronRightIcon size={22} color={colors.textPrimary} />
+          <ChevronLeftIcon size={26} color={colors.textPrimary} />
         </Pressable>
-        <Text style={{ color: colors.textPrimary, fontSize: 20, fontWeight: "700" }}>
+        <Text style={{ color: colors.textPrimary, fontSize: 24, fontWeight: "700" }}>
           Settings
+        </Text>
+        <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 4 }}>
+          Notifications and data preferences.
         </Text>
       </View>
 
@@ -106,13 +97,7 @@ export default function Settings() {
               Play the system sound when an alert fires.
             </Text>
           </View>
-          <Switch
-            value={soundOn}
-            onValueChange={(v) => void setSound(v)}
-            trackColor={{ false: colors.switchTrackOff, true: colors.switchTrackOn }}
-            thumbColor={soundOn ? colors.switchThumbOn : colors.switchThumbOff}
-            ios_backgroundColor={colors.switchTrackOff}
-          />
+          <CandleToggle value={soundOn} onValueChange={(v) => void setSound(v)} />
         </Row>
 
         <Row>
@@ -122,13 +107,7 @@ export default function Settings() {
               Vibrate the device when an alert fires.
             </Text>
           </View>
-          <Switch
-            value={vibrationOn}
-            onValueChange={(v) => void setVibration(v)}
-            trackColor={{ false: colors.switchTrackOff, true: colors.switchTrackOn }}
-            thumbColor={vibrationOn ? colors.switchThumbOn : colors.switchThumbOff}
-            ios_backgroundColor={colors.switchTrackOff}
-          />
+          <CandleToggle value={vibrationOn} onValueChange={(v) => void setVibration(v)} />
         </Row>
 
         <Row>
@@ -145,8 +124,9 @@ export default function Settings() {
             </Text>
           </View>
           {permission !== "granted" && (
-            <PrimaryButton
+            <ChipButton
               label="Request"
+              variant="primary"
               onPress={async () => {
                 const ok = await ensurePermissions();
                 setPermission(ok ? "granted" : "denied");
@@ -155,93 +135,98 @@ export default function Settings() {
           )}
         </Row>
 
-        <Row>
+        <Row isLast>
           <View style={{ flex: 1 }}>
             <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
               Send test notification
             </Text>
             <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 2 }}>
               Fires one now to verify the path works.
-              {testMsg ? `  ${testMsg}` : ""}
             </Text>
           </View>
-          <PrimaryButton
+          <ChipButton
             label="Send"
+            variant="primary"
             onPress={async () => {
               const ok = await sendTestNotification();
-              setTestMsg(ok ? "✓ sent" : "✗ blocked");
-              setTimeout(() => setTestMsg(null), 3000);
+              toast(ok ? "Test notification sent" : "Notifications are blocked");
             }}
           />
         </Row>
 
-        <SectionLabel style={{ marginTop: 28 }}>Market data</SectionLabel>
-        <Row>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.textPrimary, fontSize: 16 }}>
-              TwelveData API key (Forex)
-            </Text>
-            <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 2 }}>
-              {hasKey
-                ? `Configured (${key!.slice(0, 4)}…${key!.slice(-3)}). Set via .env: EXPO_PUBLIC_TWELVEDATA_KEY.`
-                : "Not set — Forex price panel will show demo data. Get a free key at twelvedata.com and put it in .env."}
-            </Text>
-          </View>
-        </Row>
-
         <SectionLabel style={{ marginTop: 28 }}>Data</SectionLabel>
-        <Row>
+        <Row isLast>
           <View style={{ flex: 1 }}>
             <Text style={{ color: colors.textPrimary, fontSize: 16 }}>Clear all alerts</Text>
             <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 2 }}>
               Currently {alertCount} alert{alertCount === 1 ? "" : "s"} saved on this device.
             </Text>
           </View>
-          <Pressable
+          <ChipButton
+            label="Clear"
+            variant="destructive"
+            disabled={alertCount === 0}
             onPress={async () => {
               await removeAll();
+              toast("All alerts deleted");
             }}
-            disabled={alertCount === 0}
-            style={{
-              paddingHorizontal: 16,
-              paddingVertical: 10,
-              borderRadius: 999,
-              borderWidth: 1,
-              borderColor: alertCount === 0 ? colors.borderSubtle : colors.negative,
-              opacity: alertCount === 0 ? 0.5 : 1,
-            }}
-          >
-            <Text
-              style={{ color: alertCount === 0 ? colors.textDisabled : colors.negative, fontWeight: "600" }}
-            >
-              Clear
-            </Text>
-          </Pressable>
+          />
         </Row>
 
+        <SectionLabel style={{ marginTop: 28 }}>Market data</SectionLabel>
+        <Note>
+          <Text style={{ color: colors.textPrimary, fontSize: 14, marginBottom: 4 }}>
+            TwelveData API key (Forex)
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+            {hasKey
+              ? `Configured (${key!.slice(0, 4)}…${key!.slice(-3)}). Set via .env: EXPO_PUBLIC_TWELVEDATA_KEY.`
+              : "Not set — Forex price panel will show demo data. Get a free key at twelvedata.com and put it in .env."}
+          </Text>
+        </Note>
+
         <SectionLabel style={{ marginTop: 28 }}>About</SectionLabel>
-        <Row>
-          <View style={{ flex: 1 }}>
-            <Text style={{ color: colors.textPrimary, fontSize: 16 }}>Version</Text>
-            <Text style={{ color: colors.textSecondary, fontSize: 13, marginTop: 2 }}>
-              v{version} · {Platform.OS}
-            </Text>
-          </View>
-        </Row>
+        <Note>
+          <Text style={{ color: colors.textPrimary, fontSize: 14, marginBottom: 4 }}>
+            Wick
+          </Text>
+          <Text style={{ color: colors.textSecondary, fontSize: 13 }}>
+            v{version} · {Platform.OS}
+          </Text>
+        </Note>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function Row({ children }: { children: React.ReactNode }) {
+function Row({ children, isLast }: { children: React.ReactNode; isLast?: boolean }) {
   return (
     <View
       style={{
         flexDirection: "row",
         alignItems: "center",
         paddingVertical: 14,
-        borderBottomWidth: 1,
+        borderBottomWidth: isLast ? 0 : 1,
         borderBottomColor: colors.borderSubtle,
+      }}
+    >
+      {children}
+    </View>
+  );
+}
+
+// Flat info card — used for rows that display data without an action. No
+// border-bottom so they don't masquerade as interactive list items.
+function Note({ children }: { children: React.ReactNode }) {
+  return (
+    <View
+      style={{
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        borderRadius: 10,
+        backgroundColor: colors.cardElevated,
+        borderWidth: 1,
+        borderColor: colors.borderSubtle,
       }}
     >
       {children}
@@ -265,7 +250,7 @@ function SectionLabel({
           fontWeight: "600",
           textTransform: "uppercase",
           letterSpacing: 0.5,
-          marginBottom: 4,
+          marginBottom: 8,
         },
         style,
       ]}

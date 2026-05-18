@@ -1,9 +1,14 @@
 import React from "react";
 import { Text, View } from "react-native";
 import { BellIcon } from "./Icons";
+import { PrimaryButton } from "./PrimaryButton";
 import { colors } from "../lib/theme";
 
-export function EmptyState() {
+interface Props {
+  onCreate?: () => void;
+}
+
+export function EmptyState({ onCreate }: Props) {
   return (
     <View
       style={{
@@ -22,12 +27,16 @@ export function EmptyState() {
           color: colors.textSecondary,
           fontSize: 15,
           marginTop: 20,
+          marginBottom: 20,
           textAlign: "center",
           lineHeight: 24,
         }}
       >
-        No alerts yet.{"\n"}Tap the + to create one.
+        No alerts yet.
       </Text>
+      {onCreate && (
+        <PrimaryButton label="Create your first alert" tone="positive" onPress={onCreate} />
+      )}
     </View>
   );
 }

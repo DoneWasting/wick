@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Animated, Pressable } from "react-native";
 import { colors } from "../lib/theme";
+import * as haptics from "../lib/haptics";
 
 interface Props {
   value: boolean;
@@ -37,7 +38,14 @@ export function CandleToggle({ value, onValueChange, disabled }: Props) {
 
   return (
     <Pressable
-      onPress={() => !disabled && onValueChange(!value)}
+      onPress={() => {
+        if (disabled) return;
+        // Light impact: this state change has real consequences (scheduling /
+        // cancelling notifications), so it deserves a beat heavier than a
+        // selection tick.
+        haptics.impactLight();
+        onValueChange(!value);
+      }}
       accessibilityRole="switch"
       accessibilityState={{ checked: value, disabled }}
       hitSlop={8}

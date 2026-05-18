@@ -1,30 +1,27 @@
 import React, { useEffect, useRef } from "react";
 import {
-  Alert as RNAlert,
   Animated,
   Dimensions,
   Easing,
-  Platform,
+  Image,
   Pressable,
   Text,
   View,
 } from "react-native";
 import Constants from "expo-constants";
 import { useRouter } from "expo-router";
-import { BellIcon, CandlestickIcon, TrashIcon } from "./Icons";
+import { GearIcon } from "./Icons";
 import { colors } from "../lib/theme";
-import { sendTestNotification } from "../lib/notifications";
 import { useAlertsStore } from "../store/alertsStore";
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  onConfirmClearAll: () => void;
 }
 
 const WIDTH = Math.min(300, Math.round(Dimensions.get("window").width * 0.82));
 
-export function Sidebar({ open, onClose, onConfirmClearAll }: Props) {
+export function Sidebar({ open, onClose }: Props) {
   const router = useRouter();
   const slide = useRef(new Animated.Value(open ? 0 : -WIDTH)).current;
   const fade = useRef(new Animated.Value(open ? 1 : 0)).current;
@@ -49,6 +46,9 @@ export function Sidebar({ open, onClose, onConfirmClearAll }: Props) {
   const version =
     (Constants.expoConfig?.version as string | undefined) ?? "1.0.0";
 
+  // Close the drawer first, then run the action after the slide-out finishes.
+  // Avoids janky overlap of the new screen mounting while the drawer is still
+  // animating away.
   const handle = (fn: () => void | Promise<void>) => () => {
     onClose();
     setTimeout(() => {
@@ -102,40 +102,21 @@ export function Sidebar({ open, onClose, onConfirmClearAll }: Props) {
         }}
       >
         <View style={{ paddingHorizontal: 16, paddingBottom: 24 }}>
-          <Text style={{ color: colors.textPrimary, fontSize: 22, fontWeight: "700" }}>
-            Wick
-          </Text>
-          <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 4 }}>
+          <Image
+            source={require("../assets/wick-logo.png")}
+            resizeMode="contain"
+            accessibilityLabel="Wick"
+            style={{ width: 110, height: 30 }}
+          />
+          <Text style={{ color: colors.textSecondary, fontSize: 12, marginTop: 6 }}>
             v{version} · {alertCount} alert{alertCount === 1 ? "" : "s"}
           </Text>
         </View>
 
         <SidebarItem
-          icon={<CandlestickIcon size={20} color={colors.textPrimary} />}
+          icon={<GearIcon size={20} color={colors.textPrimary} />}
           label="Settings"
           onPress={handle(() => router.push("/settings"))}
-        />
-        <SidebarItem
-          icon={<BellIcon size={20} color={colors.textPrimary} />}
-          label="Send test notification"
-          onPress={handle(async () => {
-            const ok = await sendTestNotification();
-            if (ok) return;
-            const msg =
-              "Notifications are blocked. Enable them in your phone/browser settings to receive alerts.";
-            if (Platform.OS === "web" && typeof window !== "undefined") {
-              window.alert(msg);
-            } else {
-              RNAlert.alert("Notifications blocked", msg);
-            }
-          })}
-        />
-        <SidebarItem
-          icon={<TrashIcon size={20} color={colors.negative} />}
-          label="Clear all alerts"
-          danger
-          disabled={alertCount === 0}
-          onPress={handle(() => onConfirmClearAll())}
         />
 
         <View
@@ -147,9 +128,11 @@ export function Sidebar({ open, onClose, onConfirmClearAll }: Props) {
             borderTopColor: colors.borderSubtle,
           }}
         >
-          <Text style={{ color: colors.textDisabled, fontSize: 11, lineHeight: 16 }}>
-            Local-only candle close reminders for Forex & Crypto. All alerts
-            persist on this device; no account required.
+          <Text style={{ color: colors.textSecondary, fontSize: 12, fontWeight: "600" }}>
+            Wick
+          </Text>
+          <Text style={{ color: colors.textDisabled, fontSize: 11, marginTop: 2 }}>
+            Candle Timer for Traders
           </Text>
         </View>
       </Animated.View>
@@ -161,13 +144,11 @@ function SidebarItem({
   icon,
   label,
   onPress,
-  danger,
   disabled,
 }: {
   icon: React.ReactNode;
   label: string;
   onPress: () => void;
-  danger?: boolean;
   disabled?: boolean;
 }) {
   return (
@@ -187,7 +168,7 @@ function SidebarItem({
       <View style={{ width: 24, alignItems: "center" }}>{icon}</View>
       <Text
         style={{
-          color: danger ? colors.negative : colors.textPrimary,
+          color: colors.textPrimary,
           fontSize: 15,
           marginLeft: 14,
           fontWeight: "500",

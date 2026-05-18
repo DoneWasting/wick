@@ -12,6 +12,8 @@ import {
 import { useAlerts } from "../hooks/useAlerts";
 import { useCandleScheduler } from "../hooks/useCandleScheduler";
 import { colors } from "../lib/theme";
+import { GlobalToast } from "../components/GlobalToast";
+import { loadLastTimeframe } from "../lib/preferences";
 
 if (Platform.OS !== "web") {
   Notifications.setNotificationHandler({
@@ -38,6 +40,8 @@ export default function RootLayout() {
     // Register Android notification channels (no-op on web/iOS). Channels
     // own the sound on Android, so this must run before scheduleAlert.
     void initAndroidChannels();
+    // Warm the last-used-timeframe cache so the create screen reads it sync.
+    void loadLastTimeframe();
   }, []);
 
   return (
@@ -66,6 +70,8 @@ export default function RootLayout() {
               options={{ presentation: "card", animation: "slide_from_right" }}
             />
           </Stack>
+          {/* Mounted outside the Stack so toasts render above modal screens. */}
+          <GlobalToast />
         </View>
       </SafeAreaProvider>
     </GestureHandlerRootView>

@@ -29,10 +29,8 @@ export default function Home() {
     hydrated,
     toggleAlert,
     toggleAll,
-    removeAll,
     reorderAlerts,
   } = useAlerts();
-  const [confirmDelete, setConfirmDelete] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const now = useNow(1000);
   const nowDate = new Date(now);
@@ -51,42 +49,51 @@ export default function Home() {
         style={{
           flexDirection: "row",
           alignItems: "center",
-          justifyContent: "space-between",
           paddingHorizontal: 20,
           paddingTop: 8,
-          paddingBottom: 8,
+          paddingBottom: 4,
         }}
       >
         <Pressable hitSlop={10} onPress={() => setSidebarOpen(true)}>
           <MenuIcon size={26} color={colors.textPrimary} />
         </Pressable>
+        <View style={{ flex: 1, alignItems: "center" }}>
+          <Image
+            source={require("../assets/wick-logo.png")}
+            resizeMode="contain"
+            accessibilityLabel="Wick"
+            style={{ width: 130, height: 36 }}
+          />
+        </View>
+        {/* Mirror the hamburger's footprint so the logo stays optically centered. */}
+        <View style={{ width: 26 }} />
       </View>
 
-      <Image
-        source={require("../assets/wick-logo.png")}
-        resizeMode="contain"
-        accessibilityLabel="Wick"
-        style={{
-          marginHorizontal: 20,
-          marginTop: 8,
-          width: 130,
-          height: 36,
-        }}
-      />
-      <Text
-        style={{
-          color: colors.textSecondary,
-          paddingHorizontal: 20,
-          paddingTop: 4,
-          paddingBottom: 16,
-          fontSize: 13,
-        }}
-      >
-        Now {formatClock(nowDate)} Local · {formatUtcClock(nowDate)} UTC
-      </Text>
+      <View style={{ alignItems: "center", paddingBottom: 16, paddingTop: 4 }}>
+        <View
+          style={{
+            backgroundColor: colors.cardElevated,
+            borderWidth: 1,
+            borderColor: colors.borderSubtle,
+            paddingHorizontal: 12,
+            paddingVertical: 5,
+            borderRadius: 999,
+          }}
+        >
+          <Text
+            style={{
+              color: colors.textSecondary,
+              fontSize: 12,
+              fontVariant: ["tabular-nums"],
+            }}
+          >
+            Now {formatClock(nowDate)} Local · {formatUtcClock(nowDate)} UTC
+          </Text>
+        </View>
+      </View>
 
       {!hydrated ? null : alerts.length === 0 ? (
-        <EmptyState />
+        <EmptyState onCreate={() => router.push("/create")} />
       ) : (
         <>
           <View
@@ -112,7 +119,7 @@ export default function Home() {
                 {activeCount} of {alerts.length} active
               </Text>
               {hasNextFire && (
-                <Text style={{ color: colors.accentBlueSoft, fontSize: 12, marginTop: 4 }}>
+                <Text style={{ color: colors.accentBlue, fontSize: 12, marginTop: 4 }}>
                   Next alert: {formatCountdown(nextFireAt - now)}
                 </Text>
               )}
@@ -150,63 +157,7 @@ export default function Home() {
         <PlusIcon size={28} color={colors.textPrimary} />
       </Pressable>
 
-      <Sidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        onConfirmClearAll={() => setConfirmDelete(true)}
-      />
-
-      {confirmDelete && (
-        <View
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0,0,0,0.6)",
-            alignItems: "center",
-            justifyContent: "center",
-            padding: 24,
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: colors.cardBg,
-              borderRadius: 14,
-              padding: 20,
-              maxWidth: 360,
-              width: "100%",
-              borderWidth: 1,
-              borderColor: colors.borderSubtle,
-            }}
-          >
-            <Text style={{ color: colors.textPrimary, fontSize: 18, fontWeight: "600", marginBottom: 8 }}>
-              Delete all alerts?
-            </Text>
-            <Text style={{ color: colors.textSecondary, fontSize: 14, marginBottom: 20 }}>
-              This cannot be undone.
-            </Text>
-            <View style={{ flexDirection: "row", justifyContent: "flex-end" }}>
-              <Pressable
-                onPress={() => setConfirmDelete(false)}
-                style={{ paddingHorizontal: 16, paddingVertical: 8, marginRight: 8 }}
-              >
-                <Text style={{ color: colors.accentBlue, fontSize: 15, fontWeight: "600" }}>Cancel</Text>
-              </Pressable>
-              <Pressable
-                onPress={() => {
-                  setConfirmDelete(false);
-                  void removeAll();
-                }}
-                style={{ paddingHorizontal: 16, paddingVertical: 8 }}
-              >
-                <Text style={{ color: colors.negative, fontWeight: "600", fontSize: 15 }}>Delete</Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      )}
+      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
     </SafeAreaView>
   );
 }

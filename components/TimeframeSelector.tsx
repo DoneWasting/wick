@@ -3,6 +3,7 @@ import { Pressable, Text, View } from "react-native";
 import { ALL_TIMEFRAMES, Timeframe, TIMEFRAME_LABELS } from "../types";
 import { RadioOuter } from "./Icons";
 import { colors } from "../lib/theme";
+import * as haptics from "../lib/haptics";
 
 interface Props {
   value: Timeframe | null;
@@ -17,7 +18,10 @@ export function TimeframeSelector({ value, onChange }: Props) {
         return (
           <Pressable
             key={tf}
-            onPress={() => onChange(tf)}
+            onPress={() => {
+              if (!selected) haptics.selection();
+              onChange(tf);
+            }}
             style={{ flexDirection: "row", alignItems: "center", paddingVertical: 12 }}
           >
             <RadioOuter filled={selected} size={26} />

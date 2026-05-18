@@ -1,5 +1,6 @@
 import React from "react";
 import Svg, { Path, Rect, Circle, Line } from "react-native-svg";
+import { colors } from "../lib/theme";
 
 interface IconProps {
   size?: number;
@@ -133,6 +134,35 @@ export function ChevronRightIcon({ size = 20, color = "#9A9A9A" }: IconProps) {
   );
 }
 
+export function GearIcon({ size = 20, color = "#FFFFFF" }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth="1.6" fill="none" />
+      <Path
+        d="M19.4 13.4l1.7 1.3-1.7 3-2.1-.7a7 7 0 01-2 1.2L15 20.5h-3.5l-.3-2.3a7 7 0 01-2-1.2l-2.1.7-1.7-3 1.7-1.3a7 7 0 010-2.4L3.4 9.6l1.7-3 2.1.7a7 7 0 012-1.2L9.5 3.8H13l.3 2.3a7 7 0 012 1.2l2.1-.7 1.7 3-1.7 1.4a7 7 0 010 2.4z"
+        stroke={color}
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </Svg>
+  );
+}
+
+export function ChevronLeftIcon({ size = 20, color = "#9A9A9A" }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M15 6l-6 6 6 6"
+        stroke={color}
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 export function CheckIcon({ size = 16, color = "#FFFFFF" }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
@@ -154,11 +184,11 @@ export function RadioOuter({ size = 22, color = "#9A9A9A", filled = false }: Ico
         cx="12"
         cy="12"
         r="10"
-        stroke={filled ? "#4a90e2" : color}
+        stroke={filled ? colors.accentBlue : color}
         strokeWidth="2"
         fill="none"
       />
-      {filled && <Circle cx="12" cy="12" r="5" fill="#4a90e2" />}
+      {filled && <Circle cx="12" cy="12" r="5" fill={colors.accentBlue} />}
     </Svg>
   );
 }

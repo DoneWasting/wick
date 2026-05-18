@@ -99,7 +99,7 @@ function CountdownLine({ alert }: { alert: Alert }) {
   const remaining = next.fireAt - now;
   return (
     <View style={{ marginTop: 4 }}>
-      <Text style={{ color: colors.accentBlueSoft, fontSize: 13 }}>
+      <Text style={{ color: colors.accentBlue, fontSize: 13 }}>
         Next: {formatCountdown(remaining)} · {formatClock(new Date(next.fireAt))}
       </Text>
     </View>
