@@ -13,6 +13,8 @@ import { useRouter } from "expo-router";
 import { GearIcon } from "./Icons";
 import { colors } from "../lib/theme";
 import { useAlertsStore } from "../store/alertsStore";
+import { useIsPro } from "../lib/billing";
+import * as haptics from "../lib/haptics";
 
 interface Props {
   open: boolean;
@@ -26,6 +28,7 @@ export function Sidebar({ open, onClose }: Props) {
   const slide = useRef(new Animated.Value(open ? 0 : -WIDTH)).current;
   const fade = useRef(new Animated.Value(open ? 1 : 0)).current;
   const alertCount = useAlertsStore((s) => s.alerts.length);
+  const isPro = useIsPro();
 
   useEffect(() => {
     Animated.parallel([
@@ -113,6 +116,38 @@ export function Sidebar({ open, onClose }: Props) {
           </Text>
         </View>
 
+        {!isPro && (
+          <Pressable
+            onPress={handle(() => {
+              haptics.impactLight();
+              router.push("/upgrade");
+            })}
+            style={({ pressed }) => ({
+              marginHorizontal: 8,
+              marginBottom: 12,
+              padding: 14,
+              borderRadius: 12,
+              backgroundColor: colors.positive,
+              opacity: pressed ? 0.85 : 1,
+            })}
+            accessibilityLabel="Upgrade to Wick Pro"
+          >
+            <Text style={{ color: colors.textPrimary, fontSize: 15, fontWeight: "700" }}>
+              Upgrade to Wick Pro
+            </Text>
+            <Text
+              style={{
+                color: colors.textPrimary,
+                fontSize: 12,
+                marginTop: 4,
+                opacity: 0.85,
+              }}
+            >
+              Unlimited alerts and more.
+            </Text>
+          </Pressable>
+        )}
+
         <SidebarItem
           icon={<GearIcon size={20} color={colors.textPrimary} />}
           label="Settings"
@@ -153,7 +188,11 @@ function SidebarItem({
 }) {
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        if (disabled) return;
+        haptics.impactLight();
+        onPress();
+      }}
       disabled={disabled}
       style={({ pressed }) => ({
         flexDirection: "row",

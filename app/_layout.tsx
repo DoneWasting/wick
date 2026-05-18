@@ -69,6 +69,10 @@ export default function RootLayout() {
               name="settings"
               options={{ presentation: "card", animation: "slide_from_right" }}
             />
+            <Stack.Screen
+              name="upgrade"
+              options={{ presentation: "modal", animation: "slide_from_bottom" }}
+            />
           </Stack>
           {/* Mounted outside the Stack so toasts render above modal screens. */}
           <GlobalToast />

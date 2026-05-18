@@ -135,13 +135,15 @@ export function ChevronRightIcon({ size = 20, color = "#9A9A9A" }: IconProps) {
 }
 
 export function GearIcon({ size = 20, color = "#FFFFFF" }: IconProps) {
+  // Feather Icons "settings" gear — symmetrical 8-tooth cog with a center hub.
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-      <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth="1.6" fill="none" />
+      <Circle cx="12" cy="12" r="3" stroke={color} strokeWidth="1.7" fill="none" />
       <Path
-        d="M19.4 13.4l1.7 1.3-1.7 3-2.1-.7a7 7 0 01-2 1.2L15 20.5h-3.5l-.3-2.3a7 7 0 01-2-1.2l-2.1.7-1.7-3 1.7-1.3a7 7 0 010-2.4L3.4 9.6l1.7-3 2.1.7a7 7 0 012-1.2L9.5 3.8H13l.3 2.3a7 7 0 012 1.2l2.1-.7 1.7 3-1.7 1.4a7 7 0 010 2.4z"
+        d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
         stroke={color}
-        strokeWidth="1.6"
+        strokeWidth="1.7"
+        strokeLinecap="round"
         strokeLinejoin="round"
         fill="none"
       />
